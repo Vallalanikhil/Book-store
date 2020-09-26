@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Book } from 'src/app/model/Book';
+import { HttpClientService } from 'src/app/service/http-client.service';
 
 @Component({
   selector: 'app-books',
@@ -8,25 +10,32 @@ import { Book } from 'src/app/model/Book';
 })
 export class BooksComponent implements OnInit {
   books: Array<Book>;
+  action: any;
+  selectedBook: Book;
 
-  constructor() {}
+  constructor(private httpClientService: HttpClientService,private activatedRoute: ActivatedRoute, private router:Router) {}
 
   ngOnInit() {
-    this.books = new Array<Book>();
+    this.refreshData()
+  }
+  refreshData(){
+    this.httpClientService
+      .getBooks()
+      .subscribe((Response) => this.handleSuccessfulResponse(Response));
 
-    const book1 = new Book();
-    book1.id = 1;
-    book1.name = 'book1';
-    book1.author = 'author1';
-    book1.price = 500;
+      this.activatedRoute.queryParams.subscribe(
+        (params) => {
+          this.action = params['action'];
+        }
+      )
+  }
 
-    const book2 = new Book();
-    book2.id = 1;
-    book2.name = 'book2';
-    book2.author = 'author2';
-    book2.price = 400;
+  handleSuccessfulResponse(Response) {
+    this.books = Response;
+  }
 
-    this.books.push(book1);
-    this.books.push(book2);
+  addBook(){
+    this.selectedBook =new Book();
+    this.router.navigate(['admin','books'],{queryParams:{action:'add'}});
   }
 }
